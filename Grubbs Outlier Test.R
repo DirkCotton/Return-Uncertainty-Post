@@ -17,6 +17,6 @@ grubbs.flag <- function(x) {
     pv <- grubbs.result$p.value
   }
   return(data.frame(X=x,Outlier=(x %in% outliers)))
-}
+} 
 flagged.df <- grubbs.flag(X)
 

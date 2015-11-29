@@ -1,4 +1,4 @@
-#Functions -- Annual Spending Function 
+#Functions -- Annual Spending Function  
 
 library(Rcpp)
 library(ggplot2)
