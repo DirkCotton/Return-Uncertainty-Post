@@ -1,5 +1,7 @@
 #Functions -- Annual Spending Function   
- 
+
+# Run fixed lifetime script first!
+  
 library(Rcpp) 
 library(ggplot2)
 library(reshape2)
