@@ -140,7 +140,7 @@ p2 <- ggplot(atpv.df, aes(Age,TPV/1000000)) +
   ylim(c(-1,10)) +
   theme_set(theme_gray(base_size = 12)) +
   theme(text=element_text(family="Times")) +
-  theme_gray() + theme(legend.position='none') +
+  #theme(legend.position='none') +
   #geom_vline(xintercept=mu*100) + geom_hline(yintercept=0) +
   ggtitle("Terminal Portfolio Values versus Age at Death")
 print(p2)
