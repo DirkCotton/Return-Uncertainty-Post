@@ -53,7 +53,8 @@ sigma <- 0.11
 ptm <- proc.time()
 
 for (i in 1:scenarios) {
-  x <- rlnorm(years,mu,sigma)
+  #x <- rlnorm(years,mu,sigma)
+  x <- marketReturns[i,1:lifeSpanJoint$V1[i]]
   geoMeanC[i] <- exp(mean(log(x))) - 1
   resultC[i] <- tpv(x,port,lifeSpanJoint$V1[i],spending)
   stdev[i] <- sd(x)
@@ -76,7 +77,7 @@ p <- ggplot(scatplot.df, aes(Return*100,values/1000000,fill=Sign)) +
   scale_linetype_discrete(name = "") +
   theme_gray() +
   xlim(c(0,10)) +
-  ylim(c(-1,7.6)) +
+  ylim(c(-1,10)) +
   theme_set(theme_gray(base_size = 12)) +
   theme(text=element_text(family="Times")) +
   theme(legend.title=element_blank()) + 
@@ -110,10 +111,12 @@ sizeQ2 <- sum(scatplot.df$Return >=.025 & scatplot.df$Return < .05)
 sizeQ3 <- sum(scatplot.df$Return >=.05 & scatplot.df$Return < .075)
 sizeQ4 <- sum(scatplot.df$Return >=.075)
 
-mtpvQ1 =  mean(scatplot.df$values[scatplot.df$Return<.025])
-mtpvQ4 =  mean(scatplot.df$values[scatplot.df$Return>=.075])
-mtpvQ3 =  mean(scatplot.df$values[scatplot.df$Return>=.05 & scatplot.df$Return<.075])
-mtpvQ2 =  mean(scatplot.df$values[scatplot.df$Return>=.025 & scatplot.df$Return<.05])
+mtpvQ1 =  median(scatplot.df$values[scatplot.df$Return<.025 & scatplot.df$values>0])
+mtpvQ4 =  median(scatplot.df$values[scatplot.df$Return>=.075 & scatplot.df$values>0])
+mtpvQ3 =  median(scatplot.df$values[scatplot.df$Return>=.05 & scatplot.df$Return<.075 & scatplot.df$values>0])
+mtpvQ2 =  median(scatplot.df$values[scatplot.df$Return>=.025 & scatplot.df$Return<.05 & scatplot.df$values>0])
+
+
 
 print(paste("Distribution of Geometric Mean Returns**************"),sep="")
 print(paste("Prob return < .025 is:",sizeQ1/scenarios*100,"%","Prob of Ruin is: ",round(ruinQ1/sizeQ1*100,1),"%"),sep="")
@@ -121,10 +124,10 @@ print(paste("Prob return .025 to .05 is:",sizeQ2/scenarios*100,"%","Prob of Ruin
 print(paste("Prob return .05 to .075 is:",sizeQ3/scenarios*100,"%","Prob of Ruin is: ",round(ruinQ3/sizeQ3*100,1),"%"),sep="")
 print(paste("Prob return >.075 is:",sizeQ4/scenarios*100,"%","Prob of Ruin is: ",round(ruinQ4/sizeQ4*100,1),"%"),sep="")
 
-print(paste("Q1 mean TPV is: ",round(mtpvQ1,0),sep=""))
-print(paste("Q2 mean TPV is: ",round(mtpvQ2,0),sep=""))
-print(paste("Q3 mean TPV is: ",round(mtpvQ3,0),sep=""))
-print(paste("Q4 mean TPV is: ",round(mtpvQ4,0),sep=""))
+print(paste("Q1 median successful TPV is: ",round(mtpvQ1,0),sep=""))
+print(paste("Q2 median successful TPV is: ",round(mtpvQ2,0),sep=""))
+print(paste("Q3 median successful TPV is: ",round(mtpvQ3,0),sep=""))
+print(paste("Q4 median successful TPV is: ",round(mtpvQ4,0),sep=""))
 
 # Plot age against TPV
 
@@ -143,4 +146,21 @@ p2 <- ggplot(atpv.df, aes(Age,TPV/1000000)) +
   #theme(legend.position='none') +
   #geom_vline(xintercept=mu*100) + geom_hline(yintercept=0) +
   ggtitle("Terminal Portfolio Values versus Age at Death")
-print(p2)
+#print(p2)
+
+failedQ1 = sum(scatplot.df$Return<= .025 & scatplot.df$values <= 0)
+failedQ4 =  sum(scatplot.df$Return >= .075 & scatplot.df$values <= 0)
+failedQ3 =  sum(scatplot.df$Return>=.05 & scatplot.df$Return<.075 & scatplot.df$values <= 0)
+failedQ2 =  sum(scatplot.df$Return>=.025 & scatplot.df$Return<.05 & scatplot.df$values <= 0)
+
+print(paste("Q1 % Ruined is: ",round(failedQ1/sizeQ1,2)*100,"%",sep=""))
+print(paste("Q2 % Ruined is: ",round(failedQ2/sizeQ2,2)*100,"%",sep=""))
+print(paste("Q3 % Ruined is: ",round(failedQ3/sizeQ3,2)*100,"%",sep=""))
+print(paste("Q4 % Ruined is: ",round(failedQ4/sizeQ4,2)*100,"%",sep=""))
+
+print(paste("Q1 Size is: ",sizeQ1,sep=""))
+print(paste("Q2 Size is: ",sizeQ2,sep=""))
+print(paste("Q3 Size is: ",sizeQ3,sep=""))
+print(paste("Q4 Size is: ",sizeQ4,sep=""))
+
+print(paste("Total is ",sizeQ1+sizeQ2+sizeQ3+sizeQ4,sep=""))

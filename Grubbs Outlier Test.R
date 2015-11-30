@@ -3,7 +3,7 @@ library(ggplot2)
 
 #X <- c(152.36,130.38,101.54,96.26,88.03,85.66,83.62,76.53,74.36,73.87,73.36,73.35,68.26,65.25,63.68,63.05,57.53)
 
-X <- lifeSpanJoint$V1
+X <- scatplot.df$values
 
 grubbs.flag <- function(x) {
   outliers <- NULL
