@@ -86,9 +86,9 @@ p <- ggplot(scatplot.df, aes(Return*100,values/1000000,fill=Sign)) +
   ggtitle(paste("Terminal Portfolio Values Assuming\nJoint Life Expectancy, ",spending/port*100,"% Withdrawals",sep="") )
  print(p)
  
-mtpvr <- mean(resultC)
-print(paste("Mean TPV is: ",round(mtpvr,0)),sep="")
-print(paste("Mean TPV is",round(((mtpvr-mtpvf)/mtpvf)*100,1)," % lower than for fixed lifetimes."),sep="")
+mtpvr <- median(resultC[resultC>0])
+print(paste("Median successful TPV is: ",round(mtpvr,0)),sep="")
+print(paste("Median successful TPV is",round(((mtpvr-mtpvf)/mtpvf)*100,1)," % lower than for fixed lifetimes."),sep="")
 
 rruin <- sum(resultC<=0)/scenarios
 
@@ -115,8 +115,6 @@ mtpvQ1 =  median(scatplot.df$values[scatplot.df$Return<.025 & scatplot.df$values
 mtpvQ4 =  median(scatplot.df$values[scatplot.df$Return>=.075 & scatplot.df$values>0])
 mtpvQ3 =  median(scatplot.df$values[scatplot.df$Return>=.05 & scatplot.df$Return<.075 & scatplot.df$values>0])
 mtpvQ2 =  median(scatplot.df$values[scatplot.df$Return>=.025 & scatplot.df$Return<.05 & scatplot.df$values>0])
-
-
 
 print(paste("Distribution of Geometric Mean Returns**************"),sep="")
 print(paste("Prob return < .025 is:",sizeQ1/scenarios*100,"%","Prob of Ruin is: ",round(ruinQ1/sizeQ1*100,1),"%"),sep="")
@@ -158,9 +156,19 @@ print(paste("Q2 % Ruined is: ",round(failedQ2/sizeQ2,2)*100,"%",sep=""))
 print(paste("Q3 % Ruined is: ",round(failedQ3/sizeQ3,2)*100,"%",sep=""))
 print(paste("Q4 % Ruined is: ",round(failedQ4/sizeQ4,2)*100,"%",sep=""))
 
-print(paste("Q1 Size is: ",sizeQ1,sep=""))
-print(paste("Q2 Size is: ",sizeQ2,sep=""))
-print(paste("Q3 Size is: ",sizeQ3,sep=""))
-print(paste("Q4 Size is: ",sizeQ4,sep=""))
+print(paste("Q1 Mean Annual Return: ",sizeQ1,sep=""))
+print(paste("Q2 Mean Annual Return: ",sizeQ2,sep=""))
+print(paste("Q3 Mean Annual Return: ",sizeQ3,sep=""))
+print(paste("Q4 Mean Annual Return: ",sizeQ4,sep=""))
 
 print(paste("Total is ",sizeQ1+sizeQ2+sizeQ3+sizeQ4,sep=""))
+
+meanretQ1 <- mean(scatplot.df$Return[scatplot.df$Return<.025])
+meanretQ2 <- mean(scatplot.df$Return[scatplot.df$Return>=.025 & scatplot.df$Return<.05])
+meanretQ3 <- mean(scatplot.df$Return[scatplot.df$Return>=.05 & scatplot.df$Return<=.075])
+meanretQ4 <- mean(scatplot.df$Return[scatplot.df$Return>=.075])
+
+print(paste("Q1 Mean Annual Return is: ",round(meanretQ1*100,2),"%",sep=""))
+print(paste("Q2 Mean Annual Return is: ",round(meanretQ2*100,2),"%",sep=""))
+print(paste("Q3 Mean Annual Return is: ",round(meanretQ3*100,2),"%",sep=""))
+print(paste("Q4 Mean Annual Return is: ",round(meanretQ4*100,2),"%",sep=""))

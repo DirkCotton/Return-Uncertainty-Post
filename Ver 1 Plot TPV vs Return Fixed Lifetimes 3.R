@@ -84,11 +84,12 @@ print(paste("2.5% to 5% is: ",100*(sum(geoMeanC<=.05)/scenarios - sum(geoMeanC<.
 print(paste("5% to 7.5% is: ",100*(sum(geoMeanC<=.075)/scenarios - sum(geoMeanC<=.05)/scenarios),"%",sep=""))
 print(paste(">= 7.5% is: ",100*sum(geoMeanC>.075)/scenarios,"%",sep=""))
 
-
+print(" ")
+print(" ")
 
 mtpvf <- median(resultC[resultC>0])
 
-print(paste("Mean successful TPV is: ",round(mtpvf,0),sep=""))
+print(paste("Median successful TPV is: ",round(mtpvf,0),sep=""))
 
 fruin <- sum(resultC<=0)/scenarios
 
@@ -125,5 +126,15 @@ print(paste("Q1 median successful TPV is: ",round(mtpvQ1,0),sep=""))
 print(paste("Q2 median successful TPV is: ",round(mtpvQ2,0),sep=""))
 print(paste("Q3 median successful TPV is: ",round(mtpvQ3,0),sep=""))
 print(paste("Q4 median successful TPV is: ",round(mtpvQ4,0),sep=""))
+
+meanretQ1 <- mean(scatplot.df$Return[scatplot.df$Return<.025])
+meanretQ2 <- mean(scatplot.df$Return[scatplot.df$Return>=.025 & scatplot.df$Return<.05])
+meanretQ3 <- mean(scatplot.df$Return[scatplot.df$Return>=.05 & scatplot.df$Return<=.075])
+meanretQ4 <- mean(scatplot.df$Return[scatplot.df$Return>=.075])
+
+print(paste("Q1 Mean Annual Return is: ",round(meanretQ1*100,2),"%",sep=""))
+print(paste("Q2 Mean Annual Return is: ",round(meanretQ2*100,2),"%",sep=""))
+print(paste("Q3 Mean Annual Return is: ",round(meanretQ3*100,2),"%",sep=""))
+print(paste("Q4 Mean Annual Return is: ",round(meanretQ4*100,2),"%",sep=""))
 
 #dev.off()
