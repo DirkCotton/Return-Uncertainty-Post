@@ -43,10 +43,10 @@ years <- max(lifeSpanJoint$V1)
 geoMeanC <- rep(0,scenarios)
 resultC <- rep(0,scenarios)
 stdev <- rep(0,scenarios)
-spending <- 40000
-port <- 1000000
-mu <- .05
-sigma <- 0.11
+# spending <- 40000 therse four parameters should come from FIXED LIFETIME MODEL
+# port <- 1000000
+# mu <- .04
+# sigma <- 0.11
 
 # Build random lifetimes
 
@@ -59,7 +59,7 @@ for (i in 1:scenarios) {
   resultC[i] <- tpv(x,port,lifeSpanJoint$V1[i],spending)
   stdev[i] <- sd(x)
 } 
-proc.time() - ptm 
+stdev <- na.omit(stdev)
 
 scatplot.df <- data.frame(cbind(geoMeanC,resultC))
 colnames(scatplot.df) <- c("Return","TPV")

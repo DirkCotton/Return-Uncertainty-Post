@@ -1,4 +1,4 @@
-#Functions -- Annual Spending Function 
+#Functions -- Annual Spending Function  
 
 library(Rcpp)
 library(ggplot2)
@@ -34,6 +34,7 @@ scenarios <- 10000
 years <- 30
  
 geoMeanC <- rep(0,scenarios)
+marketReturns <- matrix(0,nrow=scenarios,ncol=45)
 resultC <- rep(0,scenarios)
 stdev <- rep(0,scenarios)
 spending <- 40000
@@ -41,11 +42,15 @@ port <- 1000000
 mu <- .05
 sigma <- 0.11
 
-ptm <- proc.time()
+r1 <- .025 # top of worst quartile
+r2 <- mu # mean
+r3 <- .075 # bottom of 4th Quartile
+
+print(paste("mu = ",mu,"sigma =",sigma,"spending =",spending,sep=" "))
 
 for (i in 1:scenarios) {
-  x <- rlnorm(years,mu,sigma)
-  if (i==1306) xx <- x
+  marketReturns[i,] <- rlnorm(45,mu,sigma)
+  x <- marketReturns[i,1:30]
   geoMeanC[i] <- exp(mean(log(x))) - 1
   resultC[i] <- tpvf(x,port,years,spending)
   stdev[i] <- sd(x)
@@ -69,35 +74,72 @@ p <- ggplot(scatplot.df, aes(Return*100,values/1000000,fill=Sign)) +
   scale_linetype_discrete(name = "") +
   theme_gray() +
   xlim(c(0,10)) +
-  ylim(c(-1,7.6)) +
+  ylim(c(-1,10.7)) +
   theme_set(theme_gray(base_size = 12)) +
   theme(text=element_text(family="Times")) +
   theme(legend.title=element_blank()) + 
   theme(legend.position='none') +
-  ggtitle(paste("Terminal Portfolio Values Assuming\n30-year Retirement, ",spending/port*100,"% Withdrawals",sep="") )
+  ggtitle(paste("Figure 1. Terminal Portfolio Values Assuming\n30-year Retirement, ",spending/port*100,"% Withdrawals",sep="") )
 print(p)
  
 print("Cumulative Geometric Return Distribution ******")
-print(paste(">= 7.5% is: ",100*sum(geoMeanC>.075)/scenarios,"%",sep=""))
-print(paste("5% to 7.5% is: ",100*(sum(geoMeanC>.05)/scenarios - sum(geoMeanC>.075)/scenarios),"%",sep=""))
-print(paste("2.5% to 5% is: ",100*(sum(geoMeanC>=.025)/scenarios - sum(geoMeanC>.05)/scenarios),"%",sep=""))
-print(paste("<= 2.5 is: ",100*sum(geoMeanC<.025)/scenarios,"%",sep=""))
-mtpvf <- mean(resultC)
+print(paste("Prob return <",round(r1,3)," is:",sizeQ1/scenarios*100,"%","             Prob of Ruin is: ",round(ruinQ1/sizeQ1*100,1),"%"),sep="")
+print(paste("Prob return ",round(r1,3)," to ",round(r2,3)," is:",sizeQ2/scenarios*100,"%","    Prob of Ruin is: ",round(ruinQ2/sizeQ2*100,1),"%"),sep="")
+print(paste("Prob return ",round(r2,3)," to ",round(r3,3)," is:",sizeQ3/scenarios*100,"%","    Prob of Ruin is: ",round(ruinQ3/sizeQ3*100,1),"%"),sep="")
+print(paste("Prob return >",round(r3,3)," is:",sizeQ4/scenarios*100,"%","             Prob of Ruin is: ",round(ruinQ4/sizeQ4*100,1),"%"),sep="")
+print(" ")
+print(" ")
 
-print(paste("Mean TPV is: ",round(mtpvf,0),sep=""))
+mtpvf <- median(resultC[resultC>0])
+
+print(paste("Median successful TPV is: ",round(mtpvf,0),sep=""))
 
 fruin <- sum(resultC<=0)/scenarios
 
 print(paste("Probability of Ruin is:",fruin*100,"%"),sep="")
 
-mtpvQ1 =  mean(scatplot.df$values[scatplot.df$Return<.025])
-mtpvQ4 =  mean(scatplot.df$values[scatplot.df$Return>=.075])
-mtpvQ3 =  mean(scatplot.df$values[scatplot.df$Return>=.05 & scatplot.df$Return<.075])
-mtpvQ2 =  mean(scatplot.df$values[scatplot.df$Return>=.025 & scatplot.df$Return<.05])
 
-print(paste("Q1 mean TPV is: ",round(mtpvQ1,0),sep=""))
-print(paste("Q2 mean TPV is: ",round(mtpvQ2,0),sep=""))
-print(paste("Q3 mean TPV is: ",round(mtpvQ3,0),sep=""))
-print(paste("Q4 mean TPV is: ",round(mtpvQ4,0),sep=""))
+failedQ1 = sum(scatplot.df$Return<= r1 & scatplot.df$values <= 0)
+failedQ4 =  sum(scatplot.df$Return >= r3 & scatplot.df$values <= 0)
+failedQ3 =  sum(scatplot.df$Return>=r2 & scatplot.df$Return<r3 & scatplot.df$values <= 0)
+failedQ2 =  sum(scatplot.df$Return>=r1 & scatplot.df$Return<r2 & scatplot.df$values <= 0)
+
+sizeQ1 <- sum(scatplot.df$Return < r1) # count number of outcomes in this range of returns
+sizeQ2 <- sum(scatplot.df$Return >=r1 & scatplot.df$Return < r2)
+sizeQ3 <- sum(scatplot.df$Return >=r2 & scatplot.df$Return < r3)
+sizeQ4 <- sum(scatplot.df$Return >=r3)
+
+print(paste("Q1 % Ruined is: ",round(failedQ1/sizeQ1,2)*100,"%",sep=""))
+print(paste("Q2 % Ruined is: ",round(failedQ2/sizeQ2,2)*100,"%",sep=""))
+print(paste("Q3 % Ruined is: ",round(failedQ3/sizeQ3,2)*100,"%",sep=""))
+print(paste("Q4 % Ruined is: ",round(failedQ4/sizeQ4,2)*100,"%",sep=""))
+
+print(paste("Q1 Size is: ",sizeQ1,sep=""))
+print(paste("Q2 Size is: ",sizeQ2,sep=""))
+print(paste("Q3 Size is: ",sizeQ3,sep=""))
+print(paste("Q4 Size is: ",sizeQ4,sep=""))
+print(paste("Total is ",sizeQ1+sizeQ2+sizeQ3+sizeQ4,sep=""))
+
+mtpvQ1 =  median(scatplot.df$values[scatplot.df$Return<r1 & scatplot.df$values>0])
+mtpvQ4 =  median(scatplot.df$values[scatplot.df$Return>=r3 & scatplot.df$values>0])
+mtpvQ3 =  median(scatplot.df$values[scatplot.df$Return>=r2 & scatplot.df$Return<r3 & scatplot.df$values>0])
+mtpvQ2 =  median(scatplot.df$values[scatplot.df$Return>=r1 & scatplot.df$Return<r2 & scatplot.df$values>0])
+
+print(paste("Q1 median successful TPV is: ",round(mtpvQ1,0),sep=""))
+print(paste("Q2 median successful TPV is: ",round(mtpvQ2,0),sep=""))
+print(paste("Q3 median successful TPV is: ",round(mtpvQ3,0),sep=""))
+print(paste("Q4 median successful TPV is: ",round(mtpvQ4,0),sep=""))
+
+meanretQ1 <- mean(scatplot.df$Return[scatplot.df$Return<r1])
+meanretQ2 <- mean(scatplot.df$Return[scatplot.df$Return>=r1 & scatplot.df$Return<r2])
+meanretQ3 <- mean(scatplot.df$Return[scatplot.df$Return>=r2 & scatplot.df$Return<=r3])
+meanretQ4 <- mean(scatplot.df$Return[scatplot.df$Return>=r3])
+
+print(paste("Q1 Mean Annual Return is: ",round(meanretQ1*100,2),"%",sep=""))
+print(paste("Q2 Mean Annual Return is: ",round(meanretQ2*100,2),"%",sep=""))
+print(paste("Q3 Mean Annual Return is: ",round(meanretQ3*100,2),"%",sep=""))
+print(paste("Q4 Mean Annual Return is: ",round(meanretQ4*100,2),"%",sep=""))
+
+ggsave("~/desktop/Figure1.png",dpi=600)
 
 #dev.off()
